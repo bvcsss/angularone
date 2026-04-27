@@ -27,13 +27,15 @@ For each match, read the file to identify the framework (check `dependencies`, `
 
 ### Step 2 — Check GitHub repository status
 
-For **each detected project directory**, run checks in this exact order. Never run a git command on a directory before confirming `.git` exists — this prevents the "not a git repository" error.
+The workspace root (`c:\genericApp`) is the **single git repository** for all projects. Every project folder is a plain subdirectory — never a separate nested git repo.
+
+For the **workspace root only**, run checks in this exact order. Never run a git command before confirming `.git` exists at the root.
 
 ```
-1. Use Glob to check for .git folder:
-   Glob pattern: <project-path>/.git
+1. Use Glob to check for .git folder at workspace root:
+   Glob pattern: .git
 
-   If .git NOT found → outcome is NO_GIT. Stop here for this project.
+   If .git NOT found → outcome is NO_GIT. Stop here.
    If .git found → continue to step 2.
 
 2. Run Bash to read the remote URL:
@@ -176,12 +178,19 @@ If yes → proceed to **Create New App** flow below.
 
 4. **Install** dependencies (`npm install` or equivalent).
 
-5. **Initialize git** if the directory is not already a repo:
+5. **Remove any nested `.git`** that the framework CLI may have created inside the new project:
    ```bash
-   git init && git add . && git commit -m "chore: initial scaffold"
+   rm -rf <project-name>/.git
+   ```
+   This keeps the workspace-root repo as the single git repository.
+
+6. **Stage and commit** the new project from the workspace root:
+   ```bash
+   git add <project-name>/
+   git commit -m "chore(<project-name>): scaffold <framework> application"
    ```
 
-6. **GitHub setup** — immediately after git init, run the GitHub check from Step 2 on the new project directory. Handle `NO_REMOTE` and `GITHUB_NO_AUTH` outcomes before continuing.
+7. **GitHub setup** — run the GitHub check from Step 2 if not already `GITHUB_READY`. Handle `NO_REMOTE` and `GITHUB_NO_AUTH` outcomes before continuing.
 
 7. **Report** the dev server command to the user (e.g. `npm run dev`, `ng serve`).
 
